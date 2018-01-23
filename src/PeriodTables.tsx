@@ -3,8 +3,8 @@ import PeriodView from './PeriodView';
 
 export const PeriodTables = ({ periods }) => {
     return (
-        periods.ids.map(id =>
-            <PeriodView key={id} period={periods.entities[id]} />
+        periods.ids.map((id, index) => 
+            <PeriodView key={id} periodId={id} index={index} />
         )
     );
 };

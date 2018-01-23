@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { TableRow, TableCell } from 'material-ui/Table';
 import { Reducers } from './Reducers';
+import { TableRow, TableCell } from 'material-ui/Table';
 import * as NumberFormat from 'react-number-format';
 
 const styles = {
@@ -18,27 +18,23 @@ const styles = {
     }
 };
 
-interface PeriodEndViewProps {
-    periods: any;
-    periodId: number;
-    LastYearOfLastPeriod: number;
+interface SummaryRowProps {
+    allRepayment: number;
+    allLtp: number;
 }
 
-class PeriodEndView extends React.Component<PeriodEndViewProps, {}> {
-    constructor(props) {
-        super(props);
-    }
+class SummaryRow extends React.Component<SummaryRowProps, {}> {
     render() {
-        const { periods, periodId } = this.props;
-        const period = periods.entities[periodId];
+        const { allRepayment, allLtp } = this.props;
         return (
             <TableRow>
                 <TableCell style={styles.cellFirst as any}>
-                    {`${period.periodEnd.numberOfYears}. év betörlesztés után`}
+                    összesen fizetendő
                 </TableCell>
+                <TableCell style={styles.cell as any} />
                 <TableCell style={styles.cell as any} numeric={true}>
                     <NumberFormat
-                        value={period.periodEnd.assets}
+                        value={allRepayment}
                         displayType={'text'}
                         thousandSeparator={' '}
                         suffix={' Ft'}
@@ -47,13 +43,12 @@ class PeriodEndView extends React.Component<PeriodEndViewProps, {}> {
                 <TableCell style={styles.cell as any} />
                 <TableCell style={styles.cell as any} numeric={true}>
                     <NumberFormat
-                        value={period.periodEnd.ltpRepayment}
+                        value={allLtp}
                         displayType={'text'}
                         thousandSeparator={' '}
                         suffix={' Ft'}
                     />
                 </TableCell>
-                <TableCell style={styles.cell as any} />
             </TableRow>
         );
     }
@@ -61,9 +56,9 @@ class PeriodEndView extends React.Component<PeriodEndViewProps, {}> {
 
 const mapStateToProps = (state) => {
     return {
-        periods: Reducers.getPeriods(state.homeLoan),
-        LastYearOfLastPeriod: Reducers.getLastYear(state.homeLoan)
+        allRepayment: Reducers.getallRepayment(state.homeLoan),
+        allLtp: Reducers.getallLtp(state.homeLoan)
     };
 };
 
-export default connect(mapStateToProps, {})(PeriodEndView);
+export default connect(mapStateToProps, {})(SummaryRow);

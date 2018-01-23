@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Actions } from './Actions';
+import { Reducers } from './Reducers';
 import Input, { InputLabel } from 'material-ui/Input';
 import TextField from 'material-ui/TextField';
 import { FormControl } from 'material-ui/Form';
@@ -25,10 +26,18 @@ const styles = {
     }
 };
 
+class Periods {
+    ids: number[];
+}
+
 interface LTPFormProps {
     SetMonths: Function;
     SetMonthlySavings: Function;
     SetCalculated: Function;
+    SetLtp: Function;
+    SetAssetsWithLtp: Function;
+    periods: Periods;
+    TotalLtp: number;
 }
 
 interface LTPFormState {
@@ -63,7 +72,7 @@ class LTPForm extends React.Component<LTPFormProps, LTPFormState> {
     handleSubmit(event) {
         event.preventDefault();
         const { monthly, months } = this.state;
-        const { SetMonths, SetMonthlySavings, SetCalculated } = this.props;
+        const { SetMonths, SetMonthlySavings, SetCalculated, periods, SetLtp, SetAssetsWithLtp } = this.props;
 
         const allOwn = Calculator.allOwnSavings(monthly, months);
         const gov = Calculator.govSupport(monthly, months);
@@ -73,6 +82,8 @@ class LTPForm extends React.Component<LTPFormProps, LTPFormState> {
         SetMonths(months);
         SetMonthlySavings(Number(monthly));
         SetCalculated(allOwn, gov, allAssetsRate, allAssets);
+        SetLtp(periods.ids[periods.ids.length - 1], Number(monthly), allAssets);
+        SetAssetsWithLtp(periods.ids[periods.ids.length - 1], allAssets);
     }
     render() {
         return (
@@ -116,11 +127,15 @@ class LTPForm extends React.Component<LTPFormProps, LTPFormState> {
 
 const mapStateToProps = (state, match) => {
     return {
+        periods: Reducers.getPeriods(state.homeLoan),
+        TotalLtp: Reducers.getTotalLtp(state.ltp)
     };
 };
 
 export default connect(mapStateToProps, {
     SetMonths: Actions.SetLtpNumberOfMonth,
     SetMonthlySavings: Actions.SetLtpMonthlySaving,
-    SetCalculated: Actions.SetLtpCalculatedValues
+    SetCalculated: Actions.SetLtpCalculatedValues,
+    SetLtp: Actions.SetLtpValue,
+    SetAssetsWithLtp: Actions.SetAssetsWithLtp
 })(LTPForm);

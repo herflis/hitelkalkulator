@@ -10,6 +10,8 @@ import { Actions } from './Actions';
 import { Reducers } from './Reducers';
 import { Period } from './Period';
 import { PeriodTables } from './PeriodTables';
+import  SummaryRow from './SummaryRow';
+import Summary from './Summary';
 
 const styles = {
     container: {
@@ -53,9 +55,12 @@ interface HomeLoanFormProps {
     ChangeLength: Function;
     AddPeriod: Function;
     LastYearOfLastPeriod: number;
+    SetLtp: Function;
+    MonthlySaving: number;
+    TotalLtp: number;
 }
 
-class HomeLoanForm extends React.Component<HomeLoanFormProps, {}> {
+class HomeLoanForm extends React.Component<HomeLoanFormProps, { periods }> {
     constructor(props) {
         super(props);
         this.addPeriod = this.addPeriod.bind(this);
@@ -67,6 +72,9 @@ class HomeLoanForm extends React.Component<HomeLoanFormProps, {}> {
             const id = Math.floor(Math.random() * (200 - 0 + 1)) + 0;
             const period = new Period(defaultLength, id, LastYearOfLastPeriod);
             AddPeriod(id, period);
+            // if (MonthlySaving > 0) {
+            //     SetLtp(id, MonthlySaving, TotalLtp);
+            // }
         }
     }
     handleLengthChange(event) {
@@ -108,12 +116,13 @@ class HomeLoanForm extends React.Component<HomeLoanFormProps, {}> {
                             </TableRow>
                         </TableHead>
                         {
-                            periods.ids.length > 0 ?
+                        periods.ids.length > 0 ?
                                 <PeriodTables periods={periods} /> :
                                 <div style={styles.noperiod}>Adjon hozzá periódust!</div>
                         }
+                        <SummaryRow />
                     </Table>
-
+                    <Summary />
                 </Paper>
             </div>
         );
@@ -124,11 +133,14 @@ const mapStateToProps = (state) => {
     return {
         defaultLength: Reducers.getDefaultLength(state.homeLoan),
         periods: Reducers.getPeriods(state.homeLoan),
-        LastYearOfLastPeriod: Reducers.getLastYear(state.homeLoan)
+        LastYearOfLastPeriod: Reducers.getLastYear(state.homeLoan),
+        MonthlySaving: Reducers.getMonthlySaving(state.ltp),
+        TotalLtp: Reducers.getTotalLtp(state.ltp)
     };
 };
 
 export default connect(mapStateToProps, {
     ChangeLength: Actions.ChangeLength,
-    AddPeriod: Actions.AddPeriod
+    AddPeriod: Actions.AddPeriod,
+    SetLtp: Actions.SetLtpValue
 })(HomeLoanForm);

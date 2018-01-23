@@ -79,16 +79,46 @@ export module Reducers {
     export const entities = (state = {}, action) => {
         switch (action.type) {
             case 'ADD_PERIOD':
-                state[action.id] = action.period;
-                return state;
+                let b = Object.assign({}, state);
+                b[action.id] = action.period;
+                return b;
             case 'REMOVE_PERIOD':
                 let res = Object.assign({}, state);
                 delete res[action.id];
                 return res;
-            case 'CHANGE_PERIOD_REPAYMENT':
+            case 'SET_REPAYMENT_FOR_PERIOD':
                 let r = Object.assign({}, state);
                 r[action.id].years.map(year => year.repayment = action.repayment);
                 return r;
+            case 'SET_ASSETS_FOR_YEAR':
+                let v = Object.assign({}, state);
+                v[action.id].years.map(year => {
+                    if (Number(year.number) === Number(action.year)) { year.assets = action.assets; }
+                });
+                return v;
+            case 'SET_LTP_VALUE':
+                let a = Object.assign({}, state);
+                a[action.id].periodEnd.ltpRepayment = action.totalLtp;
+                a[action.id].years.map(year => year.ltp = action.ltp);
+                return a;
+            case 'SET_ASSETS_WITH_LTP':
+                let x = Object.assign({}, state);
+                const lastAssets = x[action.id].years[x[action.id].years.length - 1].assets;
+                x[action.id].periodEnd.assets = lastAssets - action.assets;
+                return x;
+            default:
+                return state;
+        }
+    };
+
+    export const change = (state = 0, action) => {
+        switch (action.type) {
+            case 'ADD_PERIOD':
+            case 'REMOVE_PERIOD':
+            case 'SET_REPAYMENT_FOR_PERIOD':
+            case 'SET_LTP_VALUE':
+                let a = state + 1;
+                return a;
             default:
                 return state;
         }
@@ -96,7 +126,7 @@ export module Reducers {
 
     export const periods = combineReducers({
         entities,
-        ids
+        ids,
     });
 
     export const defaultLength = (state = {}, action) => {
@@ -108,9 +138,29 @@ export module Reducers {
         }
     };
 
+    export const startingBalance = (state = 0, action) => {
+        switch (action.type) {
+            case 'SET_STARTING_BALANCE':
+                return action.balance;
+            default:
+                return state;
+        }
+    };
+
+    export const allWithoutLtp = (state = 0, action) => {
+        switch (action.type) {
+            case 'SET_ALL_WITHOUT_LTP':
+                return action.value;
+            default:
+                return state;
+        }
+    };
+
     export const homeLoan = combineReducers({
         periods,
-        defaultLength
+        defaultLength,
+        startingBalance,
+        allWithoutLtp
     });
 
     export const getDefaultLength = (state) => state.defaultLength;
@@ -121,4 +171,28 @@ export module Reducers {
             p.entities[p.ids[p.ids.length - 1]].years[p.entities[p.ids[p.ids.length - 1]].length - 1].number :
             0;
     };
+    export const getMonthlySaving = (state) => state.monthlySaving;
+    export const getTotalLtp = (state) => state.allSavings;
+    export const getStartingBalance = (state) => state.startingBalance;
+    export const getallRepayment = (state) => {
+        let all = 0;
+        state.periods.ids.map(id => {
+            state.periods.entities[id].years.map(year => {
+                all += year.repayment * 12;
+            });
+        });
+        return all;
+    };
+    export const getallLtp = (state) => {
+        let all = 0;
+        state.periods.ids.map(id => {
+            state.periods.entities[id].years.map(year => {
+                all += year.ltp * 12;
+            });
+        });
+        return all;
+    };
+    export const getAllWithoutLtp = (state) => state.allWithoutLtp;
+    export const getAllWithLtp = (state) => getallRepayment(state) + getallLtp(state);
+    export const getSavingsSummary = (state) => state.allWithoutLtp - getAllWithLtp(state);
 }
